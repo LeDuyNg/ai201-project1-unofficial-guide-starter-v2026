@@ -26,7 +26,8 @@ from dataclasses import dataclass
 
 import config
 from ingest import Document
-
+import re
+import textwrap
 
 @dataclass
 class Chunk:
@@ -82,23 +83,134 @@ def fallback_split(
 
 def split_documents(documents: list[Document]) -> list[Chunk]:
     """
-    Split documents into chunks. ⚠️ REPLACE THE BODY OF THIS IN MILESTONE 3.
+    Keep short advice threads together.
 
-    Right now it just calls the fallback. That is the plain, generic behaviour
-    the brief is talking about.
-
-    When you write your own strategy, set `produced_by` to
-    "chunker.py::split_documents" so your README's Sample Chunks section names
-    the right function. `app.py chunks` prints that string for you.
-
-    Things worth thinking about before you write any code:
-      - Are your documents short posts or long guides?
-      - Is the useful information in one sentence, or spread over a paragraph?
-      - Would splitting on paragraph breaks keep more thoughts intact than
-        splitting on a character count?
+    Longer documents are split at paragraph and sentence boundaries so that
+    chunks contain complete thoughts instead of arbitrary character windows.
     """
-    return fallback_split(documents)
 
+    max_chars = 800
+    min_chunk_chars = 100
+    produced_by = "chunker.py::split_documents"
+
+    chunks: list[Chunk] = []
+
+    for document in documents:
+        text = document.text.strip()
+
+        if not text:
+            continue
+
+        # Advice threads shorter than the limit stay as one complete chunk.
+        if len(text) <= max_chars:
+            chunks.append(
+                Chunk(
+                    text=text,
+                    source=document.source,
+                    index=0,
+                    produced_by=produced_by,
+                )
+            )
+            continue
+
+        paragraphs = [
+            paragraph.strip()
+            for paragraph in re.split(r"\n\s*\n", text)
+            if paragraph.strip()
+        ]
+
+        pieces: list[str] = []
+
+        for paragraph in paragraphs:
+            if len(paragraph) <= max_chars:
+                pieces.append(paragraph)
+                continue
+
+            # Split unusually long paragraphs at sentence boundaries.
+            sentences = re.split(r"(?<=[.!?])\s+", paragraph)
+            current_sentence_group = ""
+
+            for sentence in sentences:
+                sentence = sentence.strip()
+
+                if not sentence:
+                    continue
+
+                # Handle a sentence longer than max_chars.
+                if len(sentence) > max_chars:
+                    if current_sentence_group:
+                        pieces.append(current_sentence_group)
+                        current_sentence_group = ""
+
+                    pieces.extend(
+                        textwrap.wrap(
+                            sentence,
+                            width=max_chars,
+                            break_long_words=True,
+                            break_on_hyphens=False,
+                        )
+                    )
+                    continue
+
+                candidate = (
+                    f"{current_sentence_group} {sentence}".strip()
+                    if current_sentence_group
+                    else sentence
+                )
+
+                if (
+                    current_sentence_group
+                    and len(candidate) > max_chars
+                ):
+                    pieces.append(current_sentence_group)
+                    current_sentence_group = sentence
+                else:
+                    current_sentence_group = candidate
+
+            if current_sentence_group:
+                pieces.append(current_sentence_group)
+
+        # Combine paragraphs and sentences into chunks.
+        document_chunks: list[str] = []
+        current_chunk = ""
+
+        for piece in pieces:
+            candidate = (
+                f"{current_chunk}\n\n{piece}".strip()
+                if current_chunk
+                else piece
+            )
+
+            if current_chunk and len(candidate) > max_chars:
+                document_chunks.append(current_chunk)
+                current_chunk = piece
+            else:
+                current_chunk = candidate
+
+        if current_chunk:
+            document_chunks.append(current_chunk)
+
+        # Avoid a tiny final chunk when it can fit with the previous chunk.
+        if len(document_chunks) >= 2:
+            previous = document_chunks[-2]
+            final = document_chunks[-1]
+            merged = f"{previous}\n\n{final}"
+
+            if len(final) < min_chunk_chars and len(merged) <= max_chars:
+                document_chunks[-2] = merged
+                document_chunks.pop()
+
+        for index, chunk_text in enumerate(document_chunks):
+            chunks.append(
+                Chunk(
+                    text=chunk_text,
+                    source=document.source,
+                    index=index,
+                    produced_by=produced_by,
+                )
+            )
+
+    return chunks
 
 def describe(chunks: list[Chunk]) -> str:
     """A one-line summary, printed after indexing."""
