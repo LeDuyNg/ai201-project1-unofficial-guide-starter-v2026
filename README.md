@@ -29,7 +29,7 @@
 
 ## Chunking Strategy
 
-**Chunk size:** 600 characters
+**Chunk size:** 800 characters
 
 **Overlap:** 100 characters
 
@@ -42,7 +42,7 @@
      more than pretending you got it right first time.
 
      Milestone 3. -->
-The starter chunker made one chunk for most documents because the documents are short. I will split on paragraph boundaries and combine very short paragraphs until a chunk reaches about 600 characters. I will use 100 characters of overlap when a paragraph must be split so that context is not lost.
+The starter chunker made one chunk for most documents because the documents are short. I will split on paragraph boundaries and combine very short paragraphs until a chunk reaches about 800 characters. I will use 100 characters of overlap when a paragraph must be split so that context is not lost.
 
 ## Sample Chunks
 
@@ -141,14 +141,26 @@ without reading what came before or after?
 <!-- One complete question and answer, pasted as text, with the source line
      visible. Milestone 4. -->
 
-**Question:**
+**Question:** "I am taking a CS course, and I want to future proof my laptop. What is the minimum recommended memory size that I should get?"
 
 **Answer:**
 
 ```
+Based on the documents, 16GB of RAM is the recommended memory size worth paying for. 
+
+Source: `thread_laptop_specs.txt`
+
+Sources retrieved: thread_first_gen.txt, thread_laptop_specs.txt, thread_laundry_timing.txt, thread_pass_fail.txt, thread_printing.txt
+
+0 model calls this session, 1 served from cache
 ```
 
-**My relevance cutoff:**
+**My relevance cutoff:** 0.67
+
+The in-corpus questions had best distances between 0.314 and 0.518.
+The out-of-corpus questions had best distances between 0.828 and 0.952.
+There was a clear gap between 0.518 and 0.828, so I chose 0.67 as
+the cutoff. Distances greater than 0.67 are treated as irrelevant.
 
 <!-- The number you set in config.py, and how you got there.
 
@@ -158,10 +170,19 @@ without reading what came before or after?
      here — the table below wants all ten rows.
 
      Milestone 4. -->
-
 | Question | In corpus? | Best distance |
 |---|---|---|
-|  |  |  |
+|Is the add/drop deadline the same as the withdrawal deadline, and can I see them together?|Yes| 0.518|
+|I am taking a Writing class that isn't required for my major, can I take it as pass/fail?|Yes|0.374|
+|I am taking a CS course, and I want to future proof my laptop. What is the minimum recommended memory size that I should get?|Yes|0.314|
+|I usually eat 1 to 2 meals per day in the dining hall, which meal tier should I have?|Yes|0.376|
+|I want to apply for a summer internship at a large company, when should I do it?|Yes|0.322|
+|"What is the capital of Mongolia?"|No|0.948|
+|"How do I change the oil in a diesel engine?"|No|0.93|
+|"Who won the 1994 World Cup?"|No|0.952|
+|"What is the recommended dosage of ibuprofen for a headache?"|No|0.828|
+|"How do I write a for loop in Rust?"|No|0.871|
+
 
 ## How I Used AI
 
