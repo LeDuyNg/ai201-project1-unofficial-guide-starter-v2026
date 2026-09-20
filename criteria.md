@@ -25,6 +25,7 @@ contains the answer.
 **Why this target:**
 <!-- e.g. "One of my questions is about a topic only two documents mention, so
      I expect that one to be hard." -->
+I picked 4 of 5 because one test question covers a topic that appears in fewer documents, so it may be harder for retrieval to find the answer. A lower target would hide retrieval problems, while 5 of 5 would not allow for that difficult question.
 
 ---
 
@@ -35,6 +36,7 @@ Every answer the system produces names at least one source document.
 **Why this target:**
 <!-- Why all five and not four? What about your setup makes that achievable —
      or what would have to go wrong for it not to be? -->
+I chose all five because source attribution is part of the answer format and should be enforced by the response pipeline every time. This target is achievable because the system has access to the document metadata when it retrieves chunks; any answer without a source indicates a formatting or grounding failure.
 
 ---
 
@@ -52,10 +54,13 @@ in at least 4 of 5 tries.
 **Why this target:**
 <!-- What did your distances look like when you set the cutoff in Milestone 4?
      Was there a clean gap, or did the two groups overlap? -->
+I picked 4 of 5 because an out-of-scope question may share vocabulary with an in-scope document and produce a borderline similarity score. A lower target would allow the system to answer unsupported questions too often, while 5 of 5 may be too strict for borderline cases.
 
 ---
 
-## 4. Something about your chunks
+## 4. Chunks have a usable size
+
+At least 4 of 5 sampled chunks contain between 2 and 8 complete sentences, with no sentence split between the beginning or end of a chunk.
 
 <!-- YOU WRITE THIS ONE.
 
@@ -72,12 +77,15 @@ in at least 4 of 5 tries.
 
 
 **Why this target:**
+I chose 2 to 8 sentences because a single sentence may not provide enough context, while a chunk longer than 8 sentences is more likely to combine unrelated parts of a document. I allow one exception because headings, lists, and document boundaries can naturally create an unusually short or differently shaped chunk.
 
 
 
 ---
 
-## 5. Your choice
+## 5. Source citations are correct
+
+For at least 4 of my 5 in-scope test questions, the source document named in the answer contains the passage that supports the answer.
 
 <!-- YOU WRITE THIS ONE TOO.
 
@@ -90,8 +98,7 @@ in at least 4 of 5 tries.
 
 
 **Why this target:**
-
-
+Criterion 2 only checks that a source is named; this criterion checks that the named source is actually correct. I chose 4 of 5 because some questions may have overlapping evidence in multiple documents, but a lower target would allow too many incorrect citations.
 
 ---
 
