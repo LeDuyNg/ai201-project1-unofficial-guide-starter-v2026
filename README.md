@@ -26,6 +26,16 @@
      this repo.
 
      Milestone 5. -->
+This project indexes the `advice_threads` document corpus and splits the
+documents into chunks for retrieval. When I ask a question, the system
+retrieves the most relevant chunks and measures their distance from the
+question.
+
+A relevance gate rejects questions whose best distance is greater than
+`0.67`. For questions supported by the corpus, the system generates an
+answer using only the retrieved documents and names at least one source
+document. For unsupported questions, it returns: 
+> I don't have enough information about that
 
 ## Chunking Strategy
 
@@ -197,7 +207,14 @@ the cutoff. Distances greater than 0.67 are treated as irrelevant.
 
 **1.**
 
+I asked ChatGPT to help me interpret the retrieval distances for five
+in-corpus questions and five out-of-scope questions. It identified a clear gap between my highest in-corpus distance, `0.518`, and my lowest
+out-of-scope distance, `0.828`. I chose a relevance cutoff of `0.67` and
+used it in my README and `config.py`.
+
 **2.**
+
+I asked Chatgpt for a replacement chunking function after the starter chunker produced 26 chunks from 23 documents, including a 2-character chunk. The first code assumed a simpler `Chunk` structure than my project used. After I provided the complete `chunker.py` file, I changed the implementation to include the required `source` and `index` fields, keep short advice threads as one chunk, split longer documents at paragraph or sentence boundaries, and set `produced_by` to `chunker.py::split_documents`.
 
 <!-- ── Stretch features ─────────────────────────────────────────────────────
      Doing one? Say so here BEFORE you start. A feature this README never
